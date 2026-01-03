@@ -2,29 +2,29 @@ package main
 
 import (
     "context"
-    "fmt"
-    "time"
-    "net/http"
-    "github.com/gorilla/mux"
     "encoding/json"
+    "fmt"
+    "github.com/gorilla/mux"
     "go.mongodb.org/mongo-driver/bson"
     "go.mongodb.org/mongo-driver/bson/primitive"
     "go.mongodb.org/mongo-driver/mongo"
+    "net/http"
+    "time"
 )
 
-func Index (w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintf(w, "Hola mundo desde mi servidor Go")
+func Index(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintf(w, "Hello world!")
 }
 
 // Receives a Movie
-func responseMovie(w http.ResponseWriter, status int, result Movie){
+func responseMovie(w http.ResponseWriter, status int, result Movie) {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(result)
 }
 
 // Receives an array of Movies
-func responseMovies(w http.ResponseWriter, status int, results []Movie){
+func responseMovies(w http.ResponseWriter, status int, results []Movie) {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(results)
@@ -38,7 +38,7 @@ func MovieShow(w http.ResponseWriter, r *http.Request) {
     // Convert string ID to ObjectID
     oid, err := primitive.ObjectIDFromHex(movie_id)
     if err != nil {
-        http.Error(w, "ID inválido", http.StatusBadRequest)
+        http.Error(w, "ID not valid", http.StatusBadRequest)
         return
     }
 
@@ -51,9 +51,9 @@ func MovieShow(w http.ResponseWriter, r *http.Request) {
     err = collection.FindOne(ctx, bson.M{"_id": oid}).Decode(&result)
     if err != nil {
         if err == mongo.ErrNoDocuments {
-            http.Error(w, "Película no encontrada", http.StatusNotFound)
+            http.Error(w, "Movie not found", http.StatusNotFound)
         } else {
-            http.Error(w, "Error en la base de datos", http.StatusInternalServerError)
+            http.Error(w, "Error in database", http.StatusInternalServerError)
         }
         return
     }
@@ -62,22 +62,22 @@ func MovieShow(w http.ResponseWriter, r *http.Request) {
 }
 
 func MovieList(w http.ResponseWriter, r *http.Request) {
-   // Create context with timeout
+    // Create context with timeout
     ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     defer cancel()
 
     // Exec query
     cursor, err := collection.Find(ctx, bson.M{})
     if err != nil {
-        http.Error(w, "Error al consultar MongoDB", http.StatusInternalServerError)
+        http.Error(w, "Error querying MongoDB collection", http.StatusInternalServerError)
         return
     }
     defer cursor.Close(ctx) // This is importat, free resources
 
-   // Read all documents and store them into an slice
+    // Read all documents and store them into an slice
     var results []Movie
     if err = cursor.All(ctx, &results); err != nil {
-        http.Error(w, "Error al procesar resultados", http.StatusInternalServerError)
+        http.Error(w, "Error procesing results", http.StatusInternalServerError)
         return
     }
 
@@ -93,8 +93,8 @@ func MovieAdd(w http.ResponseWriter, r *http.Request) {
     var movie_data Movie
     err := json.NewDecoder(r.Body).Decode(&movie_data)
 
-    if(err != nil) {
-        http.Error(w, "JSON inválido", http.StatusBadRequest)
+    if err != nil {
+        http.Error(w, "JSON not valid", http.StatusBadRequest)
         return
     }
 
@@ -103,7 +103,7 @@ func MovieAdd(w http.ResponseWriter, r *http.Request) {
 
     _, err = collection.InsertOne(ctx, movie_data)
     if err != nil {
-        http.Error(w, "Error interno", http.StatusInternalServerError)
+        http.Error(w, "Internal error", http.StatusInternalServerError)
         return
     }
 
@@ -120,14 +120,14 @@ func MovieUpdate(w http.ResponseWriter, r *http.Request) {
     // Convert string to ObjectID
     oid, err := primitive.ObjectIDFromHex(movie_id)
     if err != nil {
-        http.Error(w, "ID inválido", http.StatusBadRequest)
+        http.Error(w, "ID not valid", http.StatusBadRequest)
         return
     }
 
     // Decode JSON from body
     var movie_data Movie
     if err := json.NewDecoder(r.Body).Decode(&movie_data); err != nil {
-        http.Error(w, "JSON inválido", http.StatusBadRequest)
+        http.Error(w, "JSON not valid", http.StatusBadRequest)
         return
     }
 
@@ -147,13 +147,13 @@ func MovieUpdate(w http.ResponseWriter, r *http.Request) {
     // Exec the update
     result, err := collection.UpdateOne(ctx, bson.M{"_id": oid}, update)
     if err != nil {
-        http.Error(w, "Error al actualizar en la base de datos", http.StatusInternalServerError)
+        http.Error(w, "Error updating database", http.StatusInternalServerError)
         return
     }
 
     // Verify if some document updated
     if result.MatchedCount == 0 {
-        http.Error(w, "Película no encontrada", http.StatusNotFound)
+        http.Error(w, "Movie not found", http.StatusNotFound)
         return
     }
 
@@ -162,7 +162,7 @@ func MovieUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 type Message struct {
-    Status string `json:"status"`
+    Status  string `json:"status"`
     Message string `json:"message"`
 }
 
@@ -174,7 +174,7 @@ func MovieRemove(w http.ResponseWriter, r *http.Request) {
     // Convert the string to ObjectID
     oid, err := primitive.ObjectIDFromHex(movie_id)
     if err != nil {
-        http.Error(w, "ID inválido", http.StatusBadRequest)
+        http.Error(w, "ID not valid", http.StatusBadRequest)
         return
     }
 
@@ -185,19 +185,19 @@ func MovieRemove(w http.ResponseWriter, r *http.Request) {
     // Remove document by _id
     res, err := collection.DeleteOne(ctx, bson.M{"_id": oid})
     if err != nil {
-        http.Error(w, "Error en la base de datos", http.StatusInternalServerError)
+        http.Error(w, "Error deleting element", http.StatusInternalServerError)
         return
     }
 
     if res.DeletedCount == 0 {
-        http.Error(w, "Película no encontrada", http.StatusNotFound)
+        http.Error(w, "Movie not found", http.StatusNotFound)
         return
     }
 
     // Prepare response
     result := Message{
         Status:  "success",
-        Message: "La pelicula con ID " + movie_id + " ha sido borrada",
+        Message: "Movie with ID " + movie_id + " deleted",
     }
 
     // Set headers and send answer
