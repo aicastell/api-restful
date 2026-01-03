@@ -43,13 +43,14 @@ The API will start on http://localhost:8080
 
 # API endpoints
 
-Method Endpoint Description
-GET / Welcome message
-GET /peliculas List all movies
-GET /pelicula/{id} Get a movie by ID
-POST /pelicula Create a new movie
-PUT /pelicula/{id} Update an existing movie
-DELETE /pelicula/{id} Delete a movie by ID
+| Method | Endpoint|  Description |
+|--------|---------|--------------|
+| GET | / | Welcome message |
+| GET | /peliculas | List all movies |
+| GET | /pelicula/{id} | Get a movie by ID |
+| POST | /pelicula | Create a new movie |
+| PUT | /pelicula/{id} | Update an existing movie |
+| DELETE | /pelicula/{id} | Delete a movie by ID |
 
 # Source files
 
