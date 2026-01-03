@@ -1,4 +1,4 @@
-module api-rest
+module api-restful
 
 go 1.24.5
 
